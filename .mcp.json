@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "container-use": {
+      "type": "stdio",
+      "command": "/home/mimikun/.local/bin//cu",
+      "args": ["stdio"],
+      "env": {}
+    },
+    "context7": {
+      "type": "http",
+      "url": "https://mcp.context7.com/mcp"
+    }
+  }
+}
+
