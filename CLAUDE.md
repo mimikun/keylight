@@ -130,3 +130,53 @@ This project follows Test-Driven Development (TDD) practices:
 - Mock SteelSeries GameSense API responses
 - Verify error handling scenarios
 - Test configuration file parsing
+
+## Git Conventions
+
+This project follows Conventional Commits specification for commit messages:
+
+### Commit Message Format
+
+```
+<type>[optional scope]: <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+### Commit Types
+
+- **feat**: A new feature
+- **fix**: A bug fix
+- **docs**: Documentation only changes
+- **style**: Changes that do not affect the meaning of the code (white-space, formatting, etc)
+- **refactor**: A code change that neither fixes a bug nor adds a feature
+- **perf**: A code change that improves performance
+- **test**: Adding missing tests or correcting existing tests
+- **build**: Changes that affect the build system or external dependencies
+- **ci**: Changes to CI configuration files and scripts
+- **chore**: Other changes that don't modify src or test files
+
+### Scopes
+
+Use scopes to indicate the area of the codebase being modified:
+
+- **cli**: Command line interface and argument parsing
+- **client**: SteelSeries GameSense API client
+- **config**: Configuration file handling
+- **patterns**: LED pattern definitions
+- **docs**: Documentation changes
+- **build**: Build configuration and scripts
+- **test**: Test-related changes
+
+### Examples
+
+```
+feat(cli): add success LED pattern display
+fix(config): handle missing coreProps.json file
+docs(readme): update installation instructions
+test(client): add unit tests for GameSense client
+refactor(patterns): simplify LED bitmap generation
+perf(client): optimize HTTP request handling
+```
