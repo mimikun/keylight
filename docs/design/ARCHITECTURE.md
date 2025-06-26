@@ -39,7 +39,8 @@ keylight/
 
 ### Keyboard Layout (JIS)
 
-Each key corresponds to an index in the bitmap array. Managed with 132-key array.
+Target device: SteelSeries Apex Pro JP (Product No. 64629) - Full-size Japanese JIS layout with numpad.
+Each key corresponds to an index in the bitmap array. Managed with 132-key array covering all keys including function row, main typing area, and numeric keypad.
 
 ### Pattern Definitions
 
@@ -48,12 +49,14 @@ Each key corresponds to an index in the bitmap array. Managed with 132-key array
 - **Lit Keys**: 5, 6, 7, 8, R, I, D, K, C, M, SPACE
 - **Color**: RGB(0, 255, 0)
 - **Shape**: Circle (○) representation
+- **Additional Options**: Can utilize numpad keys (1-9) for enhanced patterns on full-size layout
 
 #### Failure Pattern (Red Cross)
 
 - **Lit Keys**: 5, 8, T, Y, H, N, C
 - **Color**: RGB(255, 0, 0)
 - **Shape**: Cross (×) representation
+- **Additional Options**: Can utilize function keys (F1-F12) for status indication
 
 ### Bitmap Implementation
 

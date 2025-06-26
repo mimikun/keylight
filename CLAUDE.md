@@ -63,7 +63,7 @@ The keyboard uses a 132-key bitmap array where each key is represented by RGB va
 
 - **Development OS**: Linux (WSL2)
 - **Target OS**: Windows (x64)
-- **Target Device**: SteelSeries Apex PRO (JIS layout)
+- **Target Device**: SteelSeries Apex Pro JP (Product No. 64629) - Full-size JIS layout
 - **Go Version**: Uses standard library only, no external dependencies
 
 ### WSL Development Setup

@@ -17,7 +17,7 @@ A CLI tool to control SteelSeries Apex PRO gaming keyboard LEDs for visual notif
 - **Language**: Go (standard library only)
 - **Development Environment**: Linux
 - **Runtime Environment**: Windows (x64)
-- **Target Device**: SteelSeries Apex PRO (JIS layout)
+- **Target Device**: SteelSeries Apex Pro JP (Product No. 64629) - Full-size JIS layout
 - **Communication Protocol**: HTTP REST (GameSense API)
 
 ## Documentation Structure
@@ -87,7 +87,7 @@ go test -cover ./...
 - **Development**: Linux (WSL2 recommended)
 - **Runtime**: Windows 10/11 (x64)
 - **Dependencies**: SteelSeries Engine 3 or SteelSeries GG
-- **Hardware**: SteelSeries Apex PRO keyboard (JIS layout)
+- **Hardware**: SteelSeries Apex Pro JP keyboard (Product No. 64629) - Full-size JIS layout with numpad
 
 ## Project Structure
 
