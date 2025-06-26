@@ -69,9 +69,9 @@ func bindEvent(address string) error {
 		"event": "KEYBOARD_CONTROL",
 		"handlers": []map[string]interface{}{
 			{
-				"device-type": "keyboard",
+				"device-type": "rgb-per-key-zones",
 				"zone": "all",
-				"mode": "color",
+				"mode": "bitmap",
 			},
 		},
 	}
