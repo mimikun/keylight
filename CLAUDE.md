@@ -166,7 +166,8 @@ Use scopes to indicate the area of the codebase being modified:
 - **client**: SteelSeries GameSense API client
 - **config**: Configuration file handling
 - **patterns**: LED pattern definitions
-- **docs**: Documentation changes
+- **claude**: CLAUDE.md file changes
+- **docs**: Other documentation changes (README, etc.)
 - **build**: Build configuration and scripts
 - **test**: Test-related changes
 
@@ -175,6 +176,7 @@ Use scopes to indicate the area of the codebase being modified:
 ```
 feat(cli): add success LED pattern display
 fix(config): handle missing coreProps.json file
+docs(claude): add TDD guidelines and development setup
 docs(readme): update installation instructions
 test(client): add unit tests for GameSense client
 refactor(patterns): simplify LED bitmap generation
