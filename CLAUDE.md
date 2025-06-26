@@ -61,10 +61,24 @@ The keyboard uses a 132-key bitmap array where each key is represented by RGB va
 
 ## Development Environment
 
-- **Development OS**: Linux
+- **Development OS**: Linux (WSL2)
 - **Target OS**: Windows (x64)
 - **Target Device**: SteelSeries Apex PRO (JIS layout)
 - **Go Version**: Uses standard library only, no external dependencies
+
+### WSL Development Setup
+
+When developing on WSL, you can directly access Windows files:
+
+```bash
+# Check SteelSeries Engine configuration
+cat /mnt/c/ProgramData/SteelSeries/SteelSeries\ Engine\ 3/coreProps.json
+
+# Alternative path if user profile is needed
+cat /mnt/c/Users/mimikun/AppData/Local/SteelSeries/SteelSeries\ Engine\ 3/coreProps.json
+```
+
+This allows real-time verification of GameSense API endpoint without running on Windows.
 
 ## CLI Usage
 
@@ -84,3 +98,35 @@ The tool handles common scenarios:
 - Network connectivity issues with GameSense API
 
 Exit codes: 0 for success, 1 for error.
+
+## Development Methodology
+
+This project follows Test-Driven Development (TDD) practices:
+
+### TDD Workflow
+
+1. **Red**: Write a failing test that describes the desired behavior
+2. **Green**: Write the minimal code to make the test pass
+3. **Refactor**: Clean up the code while keeping tests passing
+
+### Testing Guidelines
+
+- Write tests before implementing functionality
+- Each function should have corresponding unit tests
+- Use table-driven tests for multiple scenarios
+- Mock external dependencies (HTTP API calls, file system operations)
+- Aim for high test coverage, especially for core business logic
+
+### Test Organization
+
+- Test files follow Go convention: `*_test.go`
+- Place tests in the same package as the code under test
+- Use `testify` assertions if needed, but prefer standard Go testing
+- Group related tests using subtests (`t.Run()`)
+
+### Integration Testing
+
+- Test the complete flow from CLI to LED pattern display
+- Mock SteelSeries GameSense API responses
+- Verify error handling scenarios
+- Test configuration file parsing
