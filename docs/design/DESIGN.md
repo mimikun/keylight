@@ -61,6 +61,12 @@ keylight --success
 
 # Activate failure scene
 keylight --failure
+
+# Initialize/verify required scenes
+keylight --init-scenes
+
+# Migrate configuration format
+keylight --migrate-config source.json target.yaml
 ```
 
 ### Build Commands
@@ -89,6 +95,7 @@ go test -cover ./...
 - **Runtime**: Windows 10/11 (x64)
 - **Dependencies**: Philips Hue Bridge on local network
 - **Hardware**: Philips Hue Bridge and Hue desk lights
+- **Configuration**: Supports JSON, YAML, TOML formats
 
 ## Project Structure
 
@@ -97,11 +104,65 @@ keylight/
 ├── main.go                   # Entry point
 ├── internal/
 │   ├── hue/                 # Hue Bridge API client
+│   │   ├── client.go        # Bridge communication
+│   │   ├── config.go        # Multi-format configuration
+│   │   ├── scenes.go        # Scene management & auto-creation
+│   │   └── types.go         # Type definitions
 │   └── cli/                 # Command line processing
 ├── docs/
 │   └── design/             # Design documentation
 ├── integration/            # Integration tests
+├── examples/               # Configuration examples
+│   ├── keylight.json       # JSON format example
+│   ├── keylight.yaml       # YAML format example
+│   └── keylight.toml       # TOML format example
 └── CLAUDE.md              # Development guidelines
 ```
+
+## Configuration Examples
+
+### JSON Format (Default)
+```json
+{
+  "bridge_ip": "192.168.1.100",
+  "username": "your-api-key",
+  "scenes": {
+    "default_scene": "Default_State",
+    "success_scene": "Success_Notification",
+    "failure_scene": "Failure_Notification"
+  },
+  "auto_create_scenes": true
+}
+```
+
+### YAML Format
+```yaml
+bridge_ip: 192.168.1.100
+username: your-api-key
+scenes:
+  default_scene: Default_State
+  success_scene: Success_Notification
+  failure_scene: Failure_Notification
+auto_create_scenes: true
+```
+
+### TOML Format
+```toml
+bridge_ip = "192.168.1.100"
+username = "your-api-key"
+auto_create_scenes = true
+
+[scenes]
+default_scene = "Default_State"
+success_scene = "Success_Notification"
+failure_scene = "Failure_Notification"
+```
+
+## Configuration Management Features
+
+- **Format Auto-Detection**: Based on file extension
+- **Configuration Migration**: Convert between formats seamlessly
+- **Scene Auto-Creation**: Automatically creates required scenes
+- **Fallback Strategy**: Default scene restoration when state capture fails
 
 For detailed information about each aspect of the system, please refer to the appropriate specialized document above.

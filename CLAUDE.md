@@ -48,10 +48,11 @@ The project follows a layered architecture:
 
 1. Discover Hue Bridge on local network or use configured IP
 2. Authenticate with Hue Bridge using stored API key
-3. Capture current scene state for restoration
-4. Activate predefined scene ("Success" or "Failure")
-5. Wait for 10 seconds
-6. Restore original scene state
+3. Ensure required notification scenes exist (auto-create if missing)
+4. Capture current light states for restoration
+5. Activate predefined scene ("Success" or "Failure")
+6. Wait for 10 seconds
+7. Restore original light states or fall back to default scene
 
 ## Scene System
 
@@ -59,6 +60,40 @@ The tool uses predefined Philips Hue scenes for visual notifications:
 
 - **Success Scene**: Green lighting pattern for successful build completion
 - **Failure Scene**: Red lighting pattern for failed build completion
+- **Default Scene**: Fallback scene for state restoration when original state capture fails
+
+### Scene Auto-Creation
+
+Required scenes are automatically created if they don't exist:
+
+```go
+// Default scene configurations
+defaultScenes := map[string]SceneDefinition{
+    "Success_Notification": {
+        Name: "Success_Notification",
+        Color: "green",
+        Brightness: 254,
+        Duration: 10,
+    },
+    "Failure_Notification": {
+        Name: "Failure_Notification", 
+        Color: "red",
+        Brightness: 254,
+        Duration: 10,
+    },
+    "Default_State": {
+        Name: "Default_State",
+        Color: "warm_white",
+        Brightness: 144,
+    },
+}
+```
+
+### State Restoration Strategy
+
+1. **Primary**: Restore individual light states captured before notification
+2. **Fallback**: Activate default scene if state restoration fails
+3. **User Override**: Users can customize default scene in Hue app
 
 ## Development Environment
 
@@ -89,6 +124,49 @@ keylight --success
 
 # Display failure scene
 keylight --failure
+
+# Initialize/verify required scenes
+keylight --init-scenes
+```
+
+## Configuration
+
+The tool supports multiple configuration file formats (JSON, YAML, TOML) with automatic format detection:
+
+### Configuration Examples
+
+**JSON Format (keylight.json)**
+```json
+{
+  "bridge_ip": "192.168.1.100",
+  "username": "your-api-key",
+  "scenes": {
+    "default_scene": "Default_State",
+    "success_scene": "Success_Notification",
+    "failure_scene": "Failure_Notification"
+  },
+  "auto_create_scenes": true
+}
+```
+
+**YAML Format (keylight.yaml)**
+```yaml
+bridge_ip: 192.168.1.100
+username: your-api-key
+scenes:
+  default_scene: Default_State
+  success_scene: Success_Notification
+  failure_scene: Failure_Notification
+auto_create_scenes: true
+```
+
+### Configuration Migration
+
+Change configuration formats without losing settings:
+
+```bash
+# Migrate from JSON to YAML
+keylight --migrate-config keylight.json keylight.yaml
 ```
 
 ## Error Handling

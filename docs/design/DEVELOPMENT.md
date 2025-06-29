@@ -144,6 +144,9 @@ go test -cover ./...
 
 # Run integration tests
 go test ./integration
+
+# Test configuration migration
+go test ./internal/hue -run TestConfigMigration
 ```
 
 ### Build Commands
@@ -162,6 +165,88 @@ go test ./...
 go test ./internal/hue
 ```
 
+## Configuration Migration Development
+
+### Testing Migration Functions
+
+```go
+func TestConfigMigration(t *testing.T) {
+    // Test JSON to YAML migration
+    jsonConfig := `{
+        "bridge_ip": "192.168.1.100",
+        "username": "test-key",
+        "scenes": {
+            "default_scene": "Default_State"
+        }
+    }`
+    
+    // Create temporary JSON file
+    jsonFile := createTempFile(t, "config.json", jsonConfig)
+    defer os.Remove(jsonFile)
+    
+    // Migrate to YAML
+    yamlFile := strings.Replace(jsonFile, ".json", ".yaml", 1)
+    err := MigrateConfigFormat(jsonFile, yamlFile)
+    assert.NoError(t, err)
+    
+    // Verify YAML content
+    yamlContent, err := os.ReadFile(yamlFile)
+    assert.NoError(t, err)
+    assert.Contains(t, string(yamlContent), "bridge_ip: 192.168.1.100")
+}
+```
+
+### Configuration Provider Implementation
+
+```go
+// Test all supported formats
+func TestAllConfigFormats(t *testing.T) {
+    testCases := []struct {
+        format   string
+        provider ConfigProvider
+        filename string
+    }{
+        {"json", &JSONConfigProvider{}, "test.json"},
+        {"yaml", &YAMLConfigProvider{}, "test.yaml"},
+        {"toml", &TOMLConfigProvider{}, "test.toml"},
+    }
+    
+    for _, tc := range testCases {
+        t.Run(tc.format, func(t *testing.T) {
+            // Test save and load cycle
+            config := createTestConfig()
+            err := tc.provider.Save(tc.filename, config)
+            assert.NoError(t, err)
+            
+            loadedConfig, err := tc.provider.Load(tc.filename)
+            assert.NoError(t, err)
+            assert.Equal(t, config, loadedConfig)
+        })
+    }
+}
+```
+
+### Scene Auto-Creation Testing
+
+```go
+func TestSceneAutoCreation(t *testing.T) {
+    // Mock Hue Bridge API
+    server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        if r.Method == "POST" && strings.Contains(r.URL.Path, "/scene") {
+            // Return success for scene creation
+            w.WriteHeader(http.StatusOK)
+            w.Write([]byte(`[{"success": {"rid": "scene-123"}}]`))
+        }
+    }))
+    defer server.Close()
+    
+    // Test scene manager
+    sceneManager := NewSceneManager(server.URL, "test-user")
+    err := sceneManager.EnsureRequiredScenes()
+    assert.NoError(t, err)
+}
+```
+
 ## Code Quality Standards
 
 ### Code Style
@@ -170,6 +255,7 @@ go test ./internal/hue
 - Use meaningful variable and function names
 - Write clear, concise comments for public APIs
 - Avoid deep nesting and complex functions
+- Implement configuration interfaces for extensibility
 
 ### Error Handling
 
@@ -177,6 +263,7 @@ go test ./internal/hue
 - Provide meaningful error messages to users
 - Log detailed errors for debugging
 - Use appropriate error types and wrapping
+- Graceful fallback for configuration migration errors
 
 ### Performance Guidelines
 
@@ -184,10 +271,12 @@ go test ./internal/hue
 - Reuse HTTP connections
 - Set appropriate timeouts
 - Profile performance-critical code
+- Cache configuration providers for repeated use
 
 ### Security Practices
 
 - Validate all inputs
 - Use secure defaults
-- Avoid logging sensitive information
+- Avoid logging sensitive information (API keys)
 - Follow principle of least privilege
+- Validate configuration file contents before migration

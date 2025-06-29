@@ -62,20 +62,28 @@ Content-Type: application/json
 
 ## Main Endpoints
 
+### API V1 Endpoints
 1. **Bridge Info**: `GET http://{bridge_ip}/api/{username}`
 2. **Scene Management**: `GET/PUT http://{bridge_ip}/api/{username}/scenes`
 3. **Light Control**: `GET/PUT http://{bridge_ip}/api/{username}/lights`
 4. **Group Control**: `GET/PUT http://{bridge_ip}/api/{username}/groups`
+
+### API V2 Endpoints (Recommended)
+1. **Scene Management**: `GET/POST/PUT http://{bridge_ip}/clip/v2/resource/scene`
+2. **Light Control**: `GET/PUT http://{bridge_ip}/clip/v2/resource/light`
+3. **Group Control**: `GET/PUT http://{bridge_ip}/clip/v2/resource/grouped_light`
+4. **Bridge Resources**: `GET http://{bridge_ip}/clip/v2/resource`
 
 ## Communication Flow
 
 ```
 1. Discover bridge on network
 2. Authenticate with bridge (username)
-3. Capture current scene state
-4. Activate notification scene
-5. Wait 10 seconds
-6. Restore original state
+3. Ensure required scenes exist (auto-create if missing)
+4. Capture current light states
+5. Activate notification scene
+6. Wait 10 seconds
+7. Restore original states or fallback to default scene
 ```
 
 ## API Request/Response Specification
@@ -171,6 +179,81 @@ Content-Type: application/json
     }
   }
 ]
+```
+
+## API V2 Scene Creation
+
+### Create Scene (POST)
+
+```http
+POST http://{bridge_ip}/clip/v2/resource/scene
+Content-Type: application/json
+hue-application-key: {username}
+
+{
+  "metadata": {
+    "name": "Success_Notification"
+  },
+  "group": {
+    "rid": "group-resource-id"
+  },
+  "actions": [
+    {
+      "target": {
+        "rid": "light-resource-id"
+      },
+      "action": {
+        "on": {
+          "on": true
+        },
+        "color": {
+          "hue": 25500,
+          "saturation": 254
+        },
+        "dimming": {
+          "brightness": 100.0
+        }
+      }
+    }
+  ]
+}
+```
+
+**Response**:
+```json
+[
+  {
+    "success": {
+      "rid": "scene-resource-id"
+    }
+  }
+]
+```
+
+### Auto-Creation Scene Definitions
+
+The tool automatically creates these scenes if they don't exist:
+
+```json
+{
+  "Success_Notification": {
+    "color": "green",
+    "hue": 25500,
+    "saturation": 254,
+    "brightness": 100
+  },
+  "Failure_Notification": {
+    "color": "red", 
+    "hue": 0,
+    "saturation": 254,
+    "brightness": 100
+  },
+  "Default_State": {
+    "color": "warm_white",
+    "brightness": 56,
+    "color_temperature": 366
+  }
+}
 ```
 
 ## Scene Definitions

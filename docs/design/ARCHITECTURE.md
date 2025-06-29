@@ -90,13 +90,31 @@ type LightState struct {
 ### internal/hue/config.go
 
 ```go
-type HueConfig struct {
-    BridgeIP string `json:"bridge_ip"`
-    Username string `json:"username"`
+// Flexible configuration system supporting multiple formats
+type ConfigProvider interface {
+    Load(filePath string) (*Config, error)
+    Save(filePath string, config *Config) error
+    GetExtension() string
+    GetDefaultFilename() string
+}
+
+type Config struct {
+    BridgeIP         string      `json:"bridge_ip" yaml:"bridge_ip" toml:"bridge_ip"`
+    Username         string      `json:"username" yaml:"username" toml:"username"`
+    Scenes           SceneConfig `json:"scenes" yaml:"scenes" toml:"scenes"`
+    AutoCreateScenes bool        `json:"auto_create_scenes" yaml:"auto_create_scenes" toml:"auto_create_scenes"`
+}
+
+type SceneConfig struct {
+    DefaultScene string `json:"default_scene" yaml:"default_scene" toml:"default_scene"`
+    SuccessScene string `json:"success_scene" yaml:"success_scene" toml:"success_scene"`
+    FailureScene string `json:"failure_scene" yaml:"failure_scene" toml:"failure_scene"`
 }
 
 // DiscoverBridge(): Discover bridge on network
-// LoadConfig(): Read configuration file
+// LoadConfig(): Read configuration file with format auto-detection
+// SaveConfig(): Save configuration in specified format
+// MigrateFormat(): Convert between configuration formats
 // GetAPIEndpoint(): Generate endpoint URL
 ```
 
@@ -111,14 +129,32 @@ type Client struct {
 
 // Authenticate(): Authenticate with bridge
 // GetScenes(): List available scenes
+// EnsureScenes(): Auto-create required scenes if missing
 // CaptureState(): Capture current light state
 // ActivateScene(): Activate specified scene
-// RestoreState(): Restore captured state
+// RestoreState(): Restore captured state or fallback to default scene
 ```
 
 ### internal/hue/scenes.go
 
 ```go
+type SceneDefinition struct {
+    Name       string `json:"name"`
+    Color      string `json:"color"`
+    Brightness uint8  `json:"brightness"`
+    Duration   int    `json:"duration,omitempty"`
+}
+
+type SceneManager struct {
+    client           *Client
+    config           *Config
+    originalStates   map[string]LightState
+    fallbackMode     bool
+}
+
+// GetDefaultScenes(): Get predefined scene configurations
+// CreateScene(): Create scene via API v2
+// EnsureRequiredScenes(): Auto-create missing scenes
 // GetSuccessScene(): Get success scene configuration
 // GetFailureScene(): Get failure scene configuration
 // ValidateScenes(): Validate scenes exist on bridge
@@ -192,6 +228,38 @@ GOOS=windows GOARCH=amd64 go build -o keylight.exe
 - No dependency libraries
 - ZIP archive with README.md
 
+## Configuration System Architecture
+
+### Multi-Format Support
+
+```go
+type ConfigManager struct {
+    provider ConfigProvider
+    filePath string
+}
+
+// Supported formats: JSON, YAML, TOML
+// Format auto-detection by file extension
+// Migration between formats without data loss
+```
+
+### Format Providers
+
+- **JSONConfigProvider**: Default format, compact and widely supported
+- **YAMLConfigProvider**: Human-readable format, good for manual editing
+- **TOMLConfigProvider**: Configuration-focused format, good for structured data
+
+### Migration Strategy
+
+```go
+// Example: Migrate from JSON to YAML
+configManager.MigrateFormat("keylight.yaml")
+
+// Preserves all configuration values
+// Automatic backup of original file
+// Validation of migrated configuration
+```
+
 ## Future Extensibility
 
 ### Potential Features
@@ -199,12 +267,14 @@ GOOS=windows GOARCH=amd64 go build -o keylight.exe
 - Custom scene support
 - Animation effects
 - Multiple room support
-- Configuration file customization
+- Plugin-based configuration providers
+- Remote configuration management
 
 ### Architecture Considerations
 
 - Scene definition externalization
 - Plugin mechanism preparation
+- Configuration format extensibility
 - Internationalization foundation
 
 ## Security Considerations
