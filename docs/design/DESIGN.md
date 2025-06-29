@@ -55,6 +55,8 @@ This design document is organized into several focused documents:
 
 ### CLI Usage
 
+**Convention**: All CLI options use double hyphens (`--`) for consistency and clarity.
+
 ```bash
 # Activate success scene
 keylight --success

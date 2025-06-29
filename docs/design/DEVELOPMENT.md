@@ -101,6 +101,7 @@ docs(design): add TDD guidelines and Git conventions
 test(client): add unit tests for Hue Bridge client
 refactor(scenes): simplify scene state management
 perf(client): optimize HTTP request handling
+fix(cli): correct single hyphen to double hyphen arguments
 ```
 
 ## Development Environment Setup
@@ -249,6 +250,21 @@ func TestSceneAutoCreation(t *testing.T) {
 
 ## Code Quality Standards
 
+### CLI Argument Conventions
+
+**CRITICAL**: All CLI options MUST use double hyphens (`--`), never single hyphens (`-`).
+
+```go
+// Correct implementation
+flag.String("success", "", "Activate success scene")
+flag.String("failure", "", "Activate failure scene")
+flag.String("init-scenes", "", "Initialize required scenes")
+flag.String("migrate-config", "", "Migrate configuration format")
+
+// WRONG - Never use single hyphens for long options
+flag.String("s", "", "success") // Only acceptable for single-letter aliases
+```
+
 ### Code Style
 
 - Follow standard Go formatting with `gofmt`
@@ -256,6 +272,7 @@ func TestSceneAutoCreation(t *testing.T) {
 - Write clear, concise comments for public APIs
 - Avoid deep nesting and complex functions
 - Implement configuration interfaces for extensibility
+- **ALWAYS use double hyphens for CLI long options**
 
 ### Error Handling
 

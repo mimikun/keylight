@@ -82,8 +82,11 @@ type LightState struct {
 
 ```go
 // Command line argument processing
-// --success: Display success pattern
-// --failure: Display failure pattern
+// IMPORTANT: All CLI options MUST use double hyphens (--), never single hyphens (-)
+// --success: Display success scene
+// --failure: Display failure scene  
+// --init-scenes: Initialize required scenes
+// --migrate-config: Migrate configuration format
 // Error handling and logging
 ```
 

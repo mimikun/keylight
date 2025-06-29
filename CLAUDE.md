@@ -118,6 +118,8 @@ This allows development and testing from any environment with network access to 
 
 ## CLI Usage
 
+**Important**: All CLI options MUST use double hyphens (`--`), never single hyphens (`-`).
+
 ```bash
 # Display success scene
 keylight --success
