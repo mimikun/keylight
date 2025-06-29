@@ -4,13 +4,73 @@
 
 ### Test-Driven Development (TDD)
 
-This project follows TDD practices to ensure code quality and reliability.
+This project follows **strict TDD** practices to ensure code quality and reliability. This methodology emphasizes strict adherence to the Red-Green-Refactor cycle with minimal implementations.
 
-#### TDD Workflow
+#### Strict TDD Workflow
 
-1. **Red**: Write a failing test that describes the desired behavior
-2. **Green**: Write the minimal code to make the test pass
-3. **Refactor**: Clean up the code while keeping tests passing
+**CRITICAL**: Always follow this exact sequence for every feature implementation:
+
+1. **Red Phase**: 
+   - Write a failing test that describes the desired behavior
+   - Run tests to confirm they fail (`go test ./...`)
+   - Commit to failure before proceeding
+
+2. **Green Phase**: 
+   - Write the absolute minimal code to make the test pass
+   - Avoid over-engineering or anticipating future needs
+   - Focus solely on making the current test pass
+   - Run tests to confirm they pass (`go test ./...`)
+
+3. **Refactor Phase**: 
+   - Clean up the code while keeping tests passing
+   - Only refactor if code quality improvements are needed
+   - Run tests after each refactor to ensure no regression
+   - Skip this phase if code is already clean
+
+#### TDD Implementation Example
+
+```bash
+# Red Phase - Write failing tests first
+cat > internal/cli/commands_test.go << 'EOF'
+func TestParseArgs_Success(t *testing.T) {
+    args := []string{"--success"}
+    cmd, err := ParseArgs(args)  // This will fail - function doesn't exist
+    // ... test assertions
+}
+EOF
+
+# Confirm Red phase
+go test ./...  # Should fail with "undefined: ParseArgs"
+
+# Green Phase - Minimal implementation
+cat > internal/cli/commands.go << 'EOF'
+func ParseArgs(args []string) (*Command, error) {
+    // Minimal implementation to pass tests
+    if len(args) == 0 {
+        return nil, fmt.Errorf("no arguments provided")
+    }
+    switch args[0] {
+    case "--success":
+        return &Command{Action: "success"}, nil
+    // ... minimal cases only
+    }
+}
+EOF
+
+# Confirm Green phase
+go test ./...  # Should pass
+
+# Refactor Phase - Only if needed
+# Clean up code while maintaining test success
+```
+
+#### TDD Cycle Discipline
+
+- **Never write production code without a failing test**
+- **Never write more than one failing test at a time**
+- **Never write more production code than needed to pass the test**
+- **Always run the full test suite between phases**
+- **Commit frequently after each successful Green phase**
 
 #### Testing Guidelines
 

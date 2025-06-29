@@ -183,13 +183,23 @@ Exit codes: 0 for success, 1 for error.
 
 ## Development Methodology
 
-This project follows Test-Driven Development (TDD) practices:
+This project follows **strict Test-Driven Development (TDD)** practices:
 
-### TDD Workflow
+### Strict TDD Workflow
 
-1. **Red**: Write a failing test that describes the desired behavior
-2. **Green**: Write the minimal code to make the test pass
-3. **Refactor**: Clean up the code while keeping tests passing
+**MANDATORY**: Follow this exact sequence for ALL feature implementations:
+
+1. **Red Phase**: Write failing test first, confirm failure with `go test ./...`
+2. **Green Phase**: Write minimal code to pass test, confirm success with `go test ./...`  
+3. **Refactor Phase**: Clean code only if needed, maintain test success
+
+### TDD Discipline Rules
+
+- **Never write production code without a failing test first**
+- **Never write more than one failing test at a time**
+- **Write only minimal code needed to pass the current test**
+- **Run full test suite between each phase**
+- **Commit after each successful Green phase**
 
 ### Testing Guidelines
 
