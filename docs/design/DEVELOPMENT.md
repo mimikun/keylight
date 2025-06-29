@@ -29,23 +29,23 @@ This project follows TDD practices to ensure code quality and reliability.
 
 #### Integration Testing
 
-- Test the complete flow from CLI to LED pattern display
-- Mock SteelSeries GameSense API responses
+- Test the complete flow from CLI to Hue scene activation
+- Mock Philips Hue Bridge API responses
 - Verify error handling scenarios
-- Test configuration file parsing
+- Test bridge discovery and authentication
 
 ### Test Structure
 
 ```
 keylight/
 ├── internal/
-│   ├── steelseries/
+│   ├── hue/
 │   │   ├── client.go
 │   │   ├── client_test.go      # Unit tests for client
 │   │   ├── config.go
 │   │   ├── config_test.go      # Unit tests for config
-│   │   ├── patterns.go
-│   │   └── patterns_test.go    # Unit tests for patterns
+│   │   ├── scenes.go
+│   │   └── scenes_test.go      # Unit tests for scenes
 │   └── cli/
 │       ├── commands.go
 │       └── commands_test.go    # Unit tests for CLI
@@ -85,9 +85,9 @@ This project follows Conventional Commits specification for commit messages.
 Use scopes to indicate the area of the codebase being modified:
 
 - **cli**: Command line interface and argument parsing
-- **client**: SteelSeries GameSense API client
+- **client**: Philips Hue Bridge API client
 - **config**: Configuration file handling
-- **patterns**: LED pattern definitions
+- **scenes**: Scene definitions and management
 - **docs**: Documentation changes
 - **build**: Build configuration and scripts
 - **test**: Test-related changes
@@ -95,29 +95,34 @@ Use scopes to indicate the area of the codebase being modified:
 ### Examples
 
 ```
-feat(cli): add success LED pattern display
-fix(config): handle missing coreProps.json file
+feat(cli): add success scene activation
+fix(config): handle Hue Bridge discovery failure
 docs(design): add TDD guidelines and Git conventions
-test(client): add unit tests for GameSense client
-refactor(patterns): simplify LED bitmap generation
+test(client): add unit tests for Hue Bridge client
+refactor(scenes): simplify scene state management
 perf(client): optimize HTTP request handling
 ```
 
 ## Development Environment Setup
 
-### WSL Development Setup
+### Cross-Platform Development Setup
 
-When developing on WSL2, you can directly access Windows files to verify SteelSeries Engine configuration:
+The Hue Bridge is accessible from both Linux and Windows environments via local network:
 
 ```bash
-# Check SteelSeries Engine configuration
-cat /mnt/c/ProgramData/SteelSeries/SteelSeries\ Engine\ 3/coreProps.json
+# Discover Hue Bridge on local network
+curl -X GET "https://discovery.meethue.com/"
 
-# Alternative path if user profile is needed
-cat /mnt/c/Users/mimikun/AppData/Local/SteelSeries/SteelSeries\ Engine\ 3/coreProps.json
+# Test connection to bridge (replace <bridge_ip> with actual IP)
+curl -X GET "http://<bridge_ip>/api/<username>/scenes"
+
+# Test scene activation
+curl -X PUT "http://<bridge_ip>/api/<username>/groups/0/action" \
+  -H "Content-Type: application/json" \
+  -d '{"scene": "Success"}'
 ```
 
-This allows real-time verification of GameSense API endpoint without running on Windows.
+This allows development and testing from any environment with network access to the Hue Bridge.
 
 ### Cross-Platform Development
 
@@ -132,7 +137,7 @@ This allows real-time verification of GameSense API endpoint without running on 
 go test ./...
 
 # Run tests for specific package
-go test ./internal/steelseries
+go test ./internal/hue
 
 # Run tests with coverage
 go test -cover ./...
@@ -154,7 +159,7 @@ go build -o keylight
 go test ./...
 
 # Run tests for specific package
-go test ./internal/steelseries
+go test ./internal/hue
 ```
 
 ## Code Quality Standards

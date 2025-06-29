@@ -8,9 +8,9 @@
 ├─────────────────────────────────────┤
 │      Command Layer (cli/)           │
 ├─────────────────────────────────────┤
-│   SteelSeries Client (steelseries/) │
+│     Hue Client (hue/)               │
 ├─────────────────────────────────────┤
-│      GameSense HTTP API             │
+│    Philips Hue Bridge API           │
 └─────────────────────────────────────┘
 ```
 
@@ -20,10 +20,10 @@
 keylight/
 ├── main.go                   # Entry point
 ├── internal/
-│   ├── steelseries/
-│   │   ├── client.go        # GameSense API client
-│   │   ├── config.go        # Configuration file handler
-│   │   ├── patterns.go      # LED pattern definitions
+│   ├── hue/
+│   │   ├── client.go        # Hue Bridge API client
+│   │   ├── config.go        # Configuration and discovery
+│   │   ├── scenes.go        # Scene management
 │   │   └── types.go         # Type definitions
 │   └── cli/
 │       └── commands.go      # Command line processing
@@ -35,40 +35,44 @@ keylight/
         └── DESIGN.md
 ```
 
-## LED Pattern Design
+## Scene Management Design
 
-### Keyboard Layout (JIS)
+### Target Device
 
-Target device: SteelSeries Apex Pro JP (Product No. 64629) - Full-size Japanese JIS layout with numpad.
-Each key corresponds to an index in the bitmap array. Managed with 132-key array covering all keys including function row, main typing area, and numeric keypad.
+Philips Hue Bridge and Hue desk lights connected to the local network.
+Communication via Hue Bridge API to control lighting scenes and individual light states.
 
-### Pattern Definitions
+### Scene Definitions
 
-#### Success Pattern (Green Circle)
+#### Success Scene
 
-- **Lit Keys**: 5, 6, 7, 8, R, I, D, K, C, M, SPACE
-- **Color**: RGB(0, 255, 0)
-- **Shape**: Circle (○) representation
-- **Additional Options**: Can utilize numpad keys (1-9) for enhanced patterns on full-size layout
+- **Name**: "Success"
+- **Color**: Green lighting pattern
+- **Duration**: 10 seconds
+- **Behavior**: Activate scene, wait, then restore original state
 
-#### Failure Pattern (Red Cross)
+#### Failure Scene
 
-- **Lit Keys**: 5, 8, T, Y, H, N, C
-- **Color**: RGB(255, 0, 0)
-- **Shape**: Cross (×) representation
-- **Additional Options**: Can utilize function keys (F1-F12) for status indication
+- **Name**: "Failure"
+- **Color**: Red lighting pattern
+- **Duration**: 10 seconds
+- **Behavior**: Activate scene, wait, then restore original state
 
-### Bitmap Implementation
+### State Management Implementation
 
 ```go
-// 132-element array (all keys)
-type KeyboardBitmap [132][3]uint8  // [R, G, B]
+// Scene state for restoration
+type SceneState struct {
+    LightStates map[string]LightState `json:"light_states"`
+    GroupState  GroupState            `json:"group_state"`
+}
 
-// Key name to index mapping
-var keyIndexMap = map[string]int{
-    "5": 5,
-    "6": 6,
-    // ...
+// Light state structure
+type LightState struct {
+    On         bool    `json:"on"`
+    Brightness uint8   `json:"bri"`
+    Hue        uint16  `json:"hue"`
+    Saturation uint8   `json:"sat"`
 }
 ```
 
@@ -83,37 +87,41 @@ var keyIndexMap = map[string]int{
 // Error handling and logging
 ```
 
-### internal/steelseries/config.go
+### internal/hue/config.go
 
 ```go
-type CoreProps struct {
-    Address string `json:"address"`
+type HueConfig struct {
+    BridgeIP string `json:"bridge_ip"`
+    Username string `json:"username"`
 }
 
-// LoadConfig(): Read coreProps.json
+// DiscoverBridge(): Discover bridge on network
+// LoadConfig(): Read configuration file
 // GetAPIEndpoint(): Generate endpoint URL
 ```
 
-### internal/steelseries/client.go
+### internal/hue/client.go
 
 ```go
 type Client struct {
-    baseURL string
+    baseURL    string
+    username   string
     httpClient *http.Client
 }
 
-// RegisterGame(): Register game
-// BindEvent(): Bind event handler
-// SendEvent(): Send LED pattern
-// StartHeartbeat(): Send heartbeat
+// Authenticate(): Authenticate with bridge
+// GetScenes(): List available scenes
+// CaptureState(): Capture current light state
+// ActivateScene(): Activate specified scene
+// RestoreState(): Restore captured state
 ```
 
-### internal/steelseries/patterns.go
+### internal/hue/scenes.go
 
 ```go
-// GetSuccessPattern(): Generate success pattern
-// GetFailurePattern(): Generate failure pattern
-// CreateBitmap(): Create bitmap array
+// GetSuccessScene(): Get success scene configuration
+// GetFailureScene(): Get failure scene configuration
+// ValidateScenes(): Validate scenes exist on bridge
 ```
 
 ### internal/cli/commands.go
@@ -127,16 +135,20 @@ type Client struct {
 
 ### Expected Errors
 
-1. **SteelSeries Engine Not Running**
-   - Error Message: "SteelSeries Engine is not running"
-   - Action: Prompt user to start
+1. **Hue Bridge Not Found**
+   - Error Message: "Hue Bridge not found on network"
+   - Action: Prompt user to check network connection
 
-2. **Configuration File Not Found**
-   - Error Message: "Configuration file not found"
-   - Action: Prompt installation check
+2. **Authentication Failed**
+   - Error Message: "Authentication with Hue Bridge failed"
+   - Action: Prompt user to press bridge button and retry
 
-3. **Network Error**
-   - Error Message: "Failed to connect to GameSense API"
+3. **Scene Not Found**
+   - Error Message: "Required scene not found on bridge"
+   - Action: Prompt user to create scenes
+
+4. **Network Error**
+   - Error Message: "Failed to connect to Hue Bridge"
    - Action: Retry or show detailed error
 
 ### Error Handling Policy
@@ -156,8 +168,8 @@ type Client struct {
 ### Compatibility
 
 - Windows 10/11 support
-- SteelSeries Engine 3/GG compatibility
-- 32bit/64bit environment consideration
+- Philips Hue Bridge v2 compatibility
+- Local network accessibility
 
 ### Maintainability
 
@@ -184,14 +196,14 @@ GOOS=windows GOARCH=amd64 go build -o keylight.exe
 
 ### Potential Features
 
-- Custom pattern support
+- Custom scene support
 - Animation effects
-- Other SteelSeries device support
+- Multiple room support
 - Configuration file customization
 
 ### Architecture Considerations
 
-- Pattern definition externalization
+- Scene definition externalization
 - Plugin mechanism preparation
 - Internationalization foundation
 

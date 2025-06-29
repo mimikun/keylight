@@ -1,15 +1,16 @@
-# keylight - SteelSeries LED Notification Tool Design Document
+# keylight - Philips Hue Notification Tool Design Document
 
 ## Overview
 
 ### Purpose
 
-A CLI tool to control SteelSeries Apex PRO gaming keyboard LEDs for visual notification of long-running task completion status such as Linux builds.
+A CLI tool to control Philips Hue desk lights for visual notification of long-running task completion status such as Linux builds.
 
 ### Key Features
 
-- Build success: Display green checkmark (circle) pattern on keyboard
-- Build failure: Display red cross pattern on keyboard
+- Build success: Activate green success scene on Hue lights
+- Build failure: Activate red failure scene on Hue lights
+- Scene state restoration: Capture and restore original lighting state
 - Simple CLI interface
 
 ### Technology Stack
@@ -17,8 +18,8 @@ A CLI tool to control SteelSeries Apex PRO gaming keyboard LEDs for visual notif
 - **Language**: Go (standard library only)
 - **Development Environment**: Linux
 - **Runtime Environment**: Windows (x64)
-- **Target Device**: SteelSeries Apex Pro JP (Product No. 64629) - Full-size JIS layout
-- **Communication Protocol**: HTTP REST (GameSense API)
+- **Target Device**: Philips Hue Bridge and Hue desk lights
+- **Communication Protocol**: HTTP REST (Hue Bridge API)
 
 ## Documentation Structure
 
@@ -26,7 +27,7 @@ This design document is organized into several focused documents:
 
 ### [ARCHITECTURE.md](./ARCHITECTURE.md)
 - System layer structure and module organization
-- LED pattern design and bitmap implementation
+- Scene management and state restoration design
 - Detailed component design specifications
 - Error handling strategies
 - Implementation considerations (performance, compatibility, maintainability)
@@ -35,12 +36,12 @@ This design document is organized into several focused documents:
 - Security considerations
 
 ### [API.md](./API.md)
-- GameSense API specification and endpoints
-- Configuration file format and location
+- Philips Hue Bridge API specification and endpoints
+- Configuration and discovery mechanisms
 - Communication flow and protocols
 - Request/response specifications with examples
 - Error handling and HTTP status codes
-- Rate limiting and API versioning
+- Authentication and security
 
 ### [DEVELOPMENT.md](./DEVELOPMENT.md)
 - Test-Driven Development (TDD) methodology
@@ -55,10 +56,10 @@ This design document is organized into several focused documents:
 ### CLI Usage
 
 ```bash
-# Display success pattern
+# Activate success scene
 keylight --success
 
-# Display failure pattern  
+# Activate failure scene
 keylight --failure
 ```
 
@@ -86,8 +87,8 @@ go test -cover ./...
 
 - **Development**: Linux (WSL2 recommended)
 - **Runtime**: Windows 10/11 (x64)
-- **Dependencies**: SteelSeries Engine 3 or SteelSeries GG
-- **Hardware**: SteelSeries Apex Pro JP keyboard (Product No. 64629) - Full-size JIS layout with numpad
+- **Dependencies**: Philips Hue Bridge on local network
+- **Hardware**: Philips Hue Bridge and Hue desk lights
 
 ## Project Structure
 
@@ -95,7 +96,7 @@ go test -cover ./...
 keylight/
 ├── main.go                   # Entry point
 ├── internal/
-│   ├── steelseries/         # GameSense API client
+│   ├── hue/                 # Hue Bridge API client
 │   └── cli/                 # Command line processing
 ├── docs/
 │   └── design/             # Design documentation

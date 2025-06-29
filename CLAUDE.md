@@ -10,7 +10,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-keylight is a CLI tool that controls SteelSeries Apex PRO gaming keyboard LEDs to provide visual notifications for build completion status. The tool communicates with the SteelSeries GameSense API via HTTP REST calls.
+keylight is a CLI tool that controls Philips Hue desk lights to provide visual notifications for build completion status. The tool communicates with the Philips Hue Bridge API via HTTP REST calls to trigger predefined scenes.
 
 ## Build Commands
 
@@ -25,7 +25,7 @@ go build -o keylight
 go test ./...
 
 # Run tests for specific package
-go test ./internal/steelseries
+go test ./internal/hue
 ```
 
 ## Architecture
@@ -34,68 +34,70 @@ The project follows a layered architecture:
 
 - **CLI Layer** (`main.go`): Entry point and command line argument processing
 - **Command Layer** (`internal/cli/`): Command parsing and execution logic
-- **SteelSeries Client** (`internal/steelseries/`): GameSense API client implementation
-- **GameSense HTTP API**: Local HTTP API provided by SteelSeries Engine
+- **Hue Client** (`internal/hue/`): Philips Hue Bridge API client implementation
+- **Philips Hue Bridge API**: Local HTTP API provided by Hue Bridge
 
 ### Key Components
 
-- `internal/steelseries/client.go`: Core GameSense API client with methods for game registration, event binding, and LED control
-- `internal/steelseries/config.go`: Handles reading SteelSeries Engine configuration from `%PROGRAMDATA%/SteelSeries/SteelSeries Engine 3/coreProps.json`
-- `internal/steelseries/patterns.go`: LED pattern definitions for success (green circle) and failure (red cross) indicators
-- `internal/steelseries/types.go`: Type definitions for GameSense API requests/responses
+- `internal/hue/client.go`: Core Hue Bridge API client with methods for scene management and light control
+- `internal/hue/config.go`: Handles Hue Bridge discovery and configuration management
+- `internal/hue/scenes.go`: Scene definitions for success and failure notifications
+- `internal/hue/types.go`: Type definitions for Hue API requests/responses
 
 ### Communication Flow
 
-1. Read `coreProps.json` to get GameSense API address
-2. Register game "KEYLIGHT" with GameSense API
-3. Bind event handler for "BUILD_STATUS" event
-4. Send LED control event with bitmap pattern
-5. Auto-off after 3-5 seconds
+1. Discover Hue Bridge on local network or use configured IP
+2. Authenticate with Hue Bridge using stored API key
+3. Capture current scene state for restoration
+4. Activate predefined scene ("Success" or "Failure")
+5. Wait for 10 seconds
+6. Restore original scene state
 
-## LED Pattern System
+## Scene System
 
-The keyboard uses a 132-key bitmap array where each key is represented by RGB values `[R, G, B]`. Patterns are defined for:
+The tool uses predefined Philips Hue scenes for visual notifications:
 
-- **Success Pattern**: Green circle using keys 5, 6, 7, 8, R, I, D, K, C, M, SPACE
-- **Failure Pattern**: Red cross using keys 5, 8, T, Y, H, N, C
+- **Success Scene**: Green lighting pattern for successful build completion
+- **Failure Scene**: Red lighting pattern for failed build completion
 
 ## Development Environment
 
 - **Development OS**: Linux (WSL2)
 - **Target OS**: Windows (x64)
-- **Target Device**: SteelSeries Apex Pro JP (Product No. 64629) - Full-size JIS layout
+- **Target Device**: Philips Hue Bridge and Hue desk lights
 - **Go Version**: Uses standard library only, no external dependencies
 
-### WSL Development Setup
+### Development Setup
 
-When developing on WSL, you can directly access Windows files:
+The Hue Bridge is accessible from both Linux and Windows environments via local network:
 
 ```bash
-# Check SteelSeries Engine configuration
-cat /mnt/c/ProgramData/SteelSeries/SteelSeries\ Engine\ 3/coreProps.json
+# Discover Hue Bridge on local network
+curl -X GET "https://discovery.meethue.com/"
 
-# Alternative path if user profile is needed
-cat /mnt/c/Users/mimikun/AppData/Local/SteelSeries/SteelSeries\ Engine\ 3/coreProps.json
+# Test connection to bridge (replace <bridge_ip> with actual IP)
+curl -X GET "http://<bridge_ip>/api/<username>/scenes"
 ```
 
-This allows real-time verification of GameSense API endpoint without running on Windows.
+This allows development and testing from any environment with network access to the Hue Bridge.
 
 ## CLI Usage
 
 ```bash
-# Display success pattern
+# Display success scene
 keylight --success
 
-# Display failure pattern  
+# Display failure scene
 keylight --failure
 ```
 
 ## Error Handling
 
 The tool handles common scenarios:
-- SteelSeries Engine not running
-- Configuration file not found
-- Network connectivity issues with GameSense API
+- Hue Bridge not accessible
+- Authentication failures
+- Scene not found
+- Network connectivity issues with Hue Bridge API
 
 Exit codes: 0 for success, 1 for error.
 
@@ -126,10 +128,10 @@ This project follows Test-Driven Development (TDD) practices:
 
 ### Integration Testing
 
-- Test the complete flow from CLI to LED pattern display
-- Mock SteelSeries GameSense API responses
+- Test the complete flow from CLI to Hue scene activation
+- Mock Philips Hue Bridge API responses
 - Verify error handling scenarios
-- Test configuration file parsing
+- Test scene state capture and restoration
 
 ## Git Conventions
 
@@ -163,9 +165,9 @@ This project follows Conventional Commits specification for commit messages:
 Use scopes to indicate the area of the codebase being modified:
 
 - **cli**: Command line interface and argument parsing
-- **client**: SteelSeries GameSense API client
+- **client**: Philips Hue Bridge API client
 - **config**: Configuration file handling
-- **patterns**: LED pattern definitions
+- **scenes**: Scene definitions and management
 - **claude**: CLAUDE.md file changes
 - **docs**: Other documentation changes (README, etc.)
 - **build**: Build configuration and scripts
@@ -174,11 +176,11 @@ Use scopes to indicate the area of the codebase being modified:
 ### Examples
 
 ```
-feat(cli): add success LED pattern display
-fix(config): handle missing coreProps.json file
+feat(cli): add success scene activation
+fix(config): handle Hue Bridge discovery failure
 docs(claude): add TDD guidelines and development setup
 docs(readme): update installation instructions
-test(client): add unit tests for GameSense client
-refactor(patterns): simplify LED bitmap generation
+test(client): add unit tests for Hue Bridge client
+refactor(scenes): simplify scene state management
 perf(client): optimize HTTP request handling
 ```
